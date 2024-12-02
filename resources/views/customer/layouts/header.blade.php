@@ -23,6 +23,9 @@
                                             </div><!-- End .header-menu -->
                                         </div>
                                     </li>
+                                    @if(\Request::is('/'))
+                                    <li>  <button class="mode-toggle-btn" onclick="toggleDarkMode()">Toggle Dark Mode</button></li>
+                                    @endif
 
                                     @if(Auth::guard('customer')->check())  
                                     <li><a href="/profile" ><i class="icon-user"></i>{{Auth::guard('customer')->user()->fname}}</a></li>

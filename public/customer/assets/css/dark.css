@@ -1,0 +1,121 @@
+/* Base light mode styles */
+body {
+    background-color: white;
+    color: #1e1e2d;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+    margin: 0;
+    padding: 0;
+}
+
+header,
+footer {
+    padding: 20px;
+    text-align: center;
+    transition: background-color 0.3s;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #1e1e2d;
+    color: black;
+}
+
+header.dark-mode,
+footer.dark-mode {
+    background-color: black;
+    color: black;
+}
+
+button.dark-mode {
+    background-color: #444;
+}
+
+button.dark-mode:hover {
+    background-color: #666;
+}
+
+/* Light mode styles for .title */
+.title {
+    color: #333; /* Dark text in light mode */
+    transition: color 0.3s; /* Smooth color transition */
+}
+
+/* Dark mode styles for .title */
+body.dark-mode .title {
+    color: white; /* White text in dark mode */
+}
+
+/* Light mode styles for .btn-outline-dark-2 */
+.btn-outline-dark-2 {
+    background-color: transparent; /* Default transparent background */
+    border: 2px solid #333; /* Dark border in light mode */
+    color: #333; /* Dark text color in light mode */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+}
+
+/* Dark mode styles for .btn-outline-dark-2 */
+body.dark-mode .btn-outline-dark-2 {
+    background-color: white; /* White background in dark mode */
+    color: #333; /* Dark text color in dark mode */
+    border: 2px solid white; /* White border in dark mode */
+}
+
+body.dark-mode .footer {
+    background-color: #1e1e2d; /* White background in dark mode */
+    color: white; /* Dark text color in dark mode */
+}
+
+body.dark-mode .header {
+    background-color: #1e1e2d; /* White background in dark mode */
+    color: white; /* Dark text color in dark mode */
+}
+
+body.dark-mode .header-top {
+    background-color: #1e1e2d; /* White background in dark mode */
+    color: white; /* Dark text color in dark mode */
+}
+
+body.dark-mode .icon-shopping-cart {
+    background-color: #1e1e2d; /* White background in dark mode */
+    color: white; /* Dark text color in dark mode */
+}
+
+body.dark-mode .widget-title {
+    background-color: #1e1e2d; /* White background in dark mode */
+    color: white; /* Dark text color in dark mode */
+}
+/* Dark mode styles for .product-details */
+body.dark-mode .main {
+    background-color: #1e1e2d; /* Dark background for product details */
+    color: white; /* Default white text color for all text within product-details */
+}
+
+/* Ensure all child elements inside .product-details also have white text in dark mode */
+body.dark-mode .product-details h1,
+body.dark-mode .product-details h2,
+body.dark-mode .product-details h3,
+body.dark-mode .product-details h4,
+body.dark-mode .product-details h5,
+body.dark-mode .product-details h6,
+body.dark-mode .product-details p,
+body.dark-mode .product-details a,
+body.dark-mode .product-details span,
+body.dark-mode .product-details li {
+    color: white; /* White text color for all child elements */
+}

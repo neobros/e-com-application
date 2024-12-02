@@ -35,10 +35,12 @@
     <link rel="stylesheet" href="/customer/assets/css/style.css">
     <link rel="stylesheet" href="/customer/assets/css/skins/skin-demo-4.css">
     <link rel="stylesheet" href="/customer/assets/css/demos/demo-4.css">
-
+    <link rel="stylesheet" href="/customer/assets/css/dark.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<link rel="stylesheet" href="/simple-datatables/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    
 </head>
 
 <body>
@@ -87,7 +89,7 @@
                             <li class="active">
                                 <a href="/">Home</a>                              
                             </li>
-                          
+                 
                             <li class="">
                                 <a href="#">Shop</a>                              
                             </li>
@@ -169,6 +171,39 @@
         </div>
     @endif
 
+    @if(\Request::is('/'))
+    <script>
+       function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const elements = document.querySelectorAll('.mode-toggle-btn');
+        elements.forEach(el => el.classList.toggle('dark-mode'));
+
+
+            if (document.body.classList.contains('dark-mode')) {
+                elements.forEach(el => el.innerHTML = 'Switch to Light Mode'); // You can change text or icons
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                elements.forEach(el => el.innerHTML = 'Switch to Dark Mode');
+                localStorage.removeItem('darkMode');
+            }
+        }
+
+        // Check if dark mode was previously enabled and apply it on page load
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            const elements = document.querySelectorAll('.mode-toggle-btn');
+            elements.forEach(el => el.classList.add('dark-mode'));
+           
+            elements.forEach(el => el.innerHTML = 'Switch to Light Mode');
+        } else {
+            // Set default button text to "Switch to Dark Mode" when dark mode is off
+            const elements = document.querySelectorAll('.mode-toggle-btn');
+            elements.forEach(el => el.innerHTML = 'Switch to Dark Mode');
+        }
+
+    </script>
+    active @endif
+ 
 
     <!-- Plugins JS File -->
     <script src="/customer/assets/js/jquery.min.js"></script>
