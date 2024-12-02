@@ -49,7 +49,7 @@ class MainController extends Controller
 
     public function logout()
     {
-        Auth::guard()->logout();
+        Auth::guard('admin')->logout();
         request()->session()->invalidate();
         //Regenerate session token to prevent session fixation attacks
         request()->session()->regenerateToken();

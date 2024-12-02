@@ -19,7 +19,7 @@ class CheckCustomer
     {
         if (Auth::guard('customer')->check() )
         {
-            if (Auth::guard('customer')->user()->role == 0  && Auth::guard('customer')->user()->status == 1 ) {
+            if (Auth::guard('customer')->user()->role == 0 ) {
                 return $next($request); 
             }else
             {

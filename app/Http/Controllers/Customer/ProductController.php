@@ -42,6 +42,7 @@ class ProductController extends Controller
 
     public function addToCart(Request $request)
     {
+        
         $data = new Cart([
             'product_id' =>$request->product_id,
             'customer_id' => Auth::guard('customer')->user()->id,  

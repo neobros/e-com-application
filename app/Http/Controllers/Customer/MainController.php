@@ -49,7 +49,7 @@ class MainController extends Controller
 
             $user = Auth::guard('customer')->user();
             if ($user->status == 0) {
-                Auth::guard()->logout();
+                Auth::guard('customer')->logout();
                 request()->session()->invalidate();
                 //Regenerate session token to prevent session fixation attacks
                 request()->session()->regenerateToken();
@@ -64,7 +64,7 @@ class MainController extends Controller
 
     public function logout()
     {
-        Auth::guard()->logout();
+        Auth::guard('customer')->logout();
         request()->session()->invalidate();
         //Regenerate session token to prevent session fixation attacks
         request()->session()->regenerateToken();
@@ -91,6 +91,8 @@ class MainController extends Controller
             'fname' => $request->fname,
             'lname' => $request->lname,
             'contact' => $request->contact,
+            'contact' => $request->contact,
+            'status' =>1,
             'email' => $request->email,
             'role' => 0,
             'password' => Hash::make($request->password),
@@ -99,7 +101,7 @@ class MainController extends Controller
         ]);
     
         //check Auth
-        Auth::guard()->login($customer);
+        Auth::guard('customer')->login($customer);
         return response()->json(['success' => true, 'message' => 'Registered successfully.'], 200);
     }
 
