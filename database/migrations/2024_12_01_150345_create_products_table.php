@@ -21,9 +21,11 @@ return new class extends Migration
             $table->integer('quantity');
             $table->longText('description');
             $table->integer('status')->default(1)->comment('0 Deactivate, 1 Active');
-            $table->integer('brand_id');
+            $table->unsignedInteger('brand_id');
             $table->integer('admin_id');
             $table->timestamps();
+
+            $table->foreign('brand_id')->references('brand_id')->on('brands')->onDelete('cascade');
         });
     }
 

@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('rates', function (Blueprint $table) {
             $table->id();
             $table->integer('customer_id');
-            $table->integer('product_id');
+            $table->unsignedInteger('product_id');
             $table->integer('rate_count')->comment('1 to 5');
             $table->timestamps();
+
+            $table->foreign('product_id')->references('product_id')->on('products')->onDelete('cascade');
+
         });
     }
 
