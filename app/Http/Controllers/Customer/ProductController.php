@@ -11,13 +11,22 @@ use App\Models\Product;
 use App\Models\Cart;
 use App\Models\Rate;
 use DB;
+use App\Repositories\UserRepositoryInterface;
 
 class ProductController extends Controller
 {
-    public function productPage($product_id)
+    protected $userRepository;
+
+    // Inject UserRepository
+    public function __construct(UserRepositoryInterface $userRepository)
     {
-        $productData = Product::join('brands', 'products.brand_id', '=', 'brands.brand_id')->where('products.status',1)->where('product_id',$product_id)->select('products.*', 'brands.brand_name')->first();
-        $brandList = Brand::all();
+        $this->userRepository = $userRepository;
+    }
+
+    public function productPage($product_id)
+    {   
+        $productData = $this->userRepository->getProductData($product_id);
+        $brandList = $this->userRepository->getBrandList();
 
         $rateData = null ;
         $cartDetails = null ;
@@ -25,10 +34,9 @@ class ProductController extends Controller
 
         if(Auth::guard('customer')->check())  
         {
-            $cartDetails = Cart::where('product_id' , $product_id)->where('customer_id' , Auth::guard('customer')->user()->id)->get();
-            $cartData =  Cart::join('products', 'carts.product_id', '=', 'products.product_id')->where('carts.customer_id' , Auth::guard('customer')->user()->id)->get();
-            $rateData =  Rate::where('customer_id',Auth::guard('customer')->user()->id)->where('product_id',$product_id)->select('rate_count')->first();
-
+            $cartDetails = $this->userRepository->getCartDetails($product_id , Auth::guard('customer')->user()->id);
+            $cartData =  $this->userRepository->getProductCartData($product_id , Auth::guard('customer')->user()->id);
+            $rateData =  $this->userRepository->getRateData(Auth::guard('customer')->user()->id , $product_id);
         }
 
         return view('customer.product')->with([
@@ -43,15 +51,15 @@ class ProductController extends Controller
     public function addToCart(Request $request)
     {
         
-        $data = new Cart([
-            'product_id' =>$request->product_id,
-            'customer_id' => Auth::guard('customer')->user()->id,  
-            'storage' =>$request->storage,
-            'quantity' =>$request->quantity,
-        ]);
+        $data = [
+            'product_id' => $request->product_id,
+            'customer_id' => Auth::guard('customer')->user()->id,
+            'storage' => $request->storage,
+            'quantity' => $request->quantity,
+        ];
 
-        $data->save();
-    
+        $this->userRepository->addToCart($data);
+
         return response()->json([
             'success' => 1,
             'message' => 'Item added to your cart successfully!',
@@ -61,9 +69,8 @@ class ProductController extends Controller
 
     public function cart()
     {
-        $brandList = Brand::all();
-        $cartData =  Cart::join('products', 'carts.product_id', '=', 'products.product_id')->where('carts.customer_id' , Auth::guard('customer')->user()->id)
-        ->select('products.*', 'carts.cart_id' ,'carts.customer_id' ,'carts.storage as cartStorage' ,'carts.quantity as cartsQuantity')->get();
+        $brandList = $this->userRepository->getBrandList();
+        $cartData =  $this->userRepository->getCartAndProductData(Auth::guard('customer')->user()->id);
 
         return view('customer.cart')->with([
             'brandList'  =>   $brandList, 
@@ -77,7 +84,7 @@ class ProductController extends Controller
             'storage' => $request->selectedStorage,
         ];
 
-        Cart::where('cart_id',$request->cart_id)->update($update);
+        $this->userRepository->updateCartSize($request->cart_id ,$update);
     
         return response()->json([
             'success' => 1,
@@ -91,29 +98,20 @@ class ProductController extends Controller
             'quantity' => $request->quantity,
         ];
 
-        Cart::where('cart_id',$request->cart_id)->update($update);
-    
-        $totalPrice = Cart::join('products', 'carts.product_id', '=', 'products.product_id')
-        ->where('carts.customer_id', Auth::guard('customer')->user()->id)
-        ->select(DB::raw('SUM(carts.quantity * products.sell_price) as totalPrice')) // Calculate total price
-        ->value('totalPrice'); // Get the final value directly
+        $this->userRepository->updateCartSize($request->cart_id ,$update);
+        $totalPrice = $this->userRepository->getTotalPrice(Auth::guard('customer')->user()->id);
 
         return response()->json([
             'success' => 1,
             'message' => 'update successfully!',
             'data' =>  $totalPrice,
         ]);
-
     }
 
     public function removeCartRow(Request $request)
-    {
-        Cart::where('cart_id', $request->cart_id)->delete();
-
-        $totalPrice = Cart::join('products', 'carts.product_id', '=', 'products.product_id')
-        ->where('carts.customer_id', Auth::guard('customer')->user()->id)
-        ->select(DB::raw('SUM(carts.quantity * products.sell_price) as totalPrice')) // Calculate total price
-        ->value('totalPrice'); // Get the final value directly
+    {    
+        $this->userRepository->removeCart($request->cart_id);
+        $totalPrice = $this->userRepository->getTotalPrice(Auth::guard('customer')->user()->id);
 
         return response()->json([
             'success' => 1,
@@ -122,21 +120,14 @@ class ProductController extends Controller
         ]);
     }
 
-
     public function updateRate(Request $request)
     {
         $rateData = [
             'rate_count' => $request->rate_count,
         ];
         
-        Rate::updateOrCreate(
-            [
-                'customer_id' => Auth::guard('customer')->user()->id,
-                'product_id' => $request->product_id,
-            ], 
-            $rateData
-        );
-        
+        $this->userRepository->updateRate( $rateData ,Auth::guard('customer')->user()->id  , $request->product_id );
+
         return response()->json([
             'success' => 1,
             'message' => 'successfully!',
