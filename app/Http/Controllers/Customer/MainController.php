@@ -11,20 +11,28 @@ use App\Models\User;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\Cart;
+use App\Repositories\UserRepositoryInterface;
 
 class MainController extends Controller
 {
-    public function home()
-    {
-         $cartData = null ;
+    protected $userRepository;
 
+    // Inject UserRepository
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
+    public function home()
+    {  
+        $cartData = null ;
         if(Auth::guard('customer')->check())  
         {
-            $cartData =  Cart::where('carts.customer_id' , Auth::guard('customer')->user()->id)->select('carts.cart_id')->get();
+            $cartData = $this->userRepository->getCartData(Auth::guard('customer')->user()->id);
         }
 
-        $productList = Product::join('brands', 'products.brand_id', '=', 'brands.brand_id')->select('products.*', 'brands.brand_name')->get();
-        $brandList = Brand::all();
+        $productList = $this->userRepository->getProductList();
+        $brandList = $this->userRepository->getBrandList();
 
         return view('customer.home')->with([
             'brandList'  =>   $brandList, 
@@ -45,30 +53,16 @@ class MainController extends Controller
         }
 
         $credentials = $request->only('email', 'password');
-        if (Auth::guard('customer')->attempt($credentials)) {
 
-            $user = Auth::guard('customer')->user();
-            if ($user->status == 0) {
-                Auth::guard('customer')->logout();
-                request()->session()->invalidate();
-                //Regenerate session token to prevent session fixation attacks
-                request()->session()->regenerateToken();
-                return response()->json(['success' => false, 'message' => 'Your account is deactivated. Please contact support.'], 401); 
+        // Use the repository to handle login
+        $response = $this->userRepository->login($credentials);
 
-            }
-            return response()->json(['success' => true, 'message' => 'Login successfully.'], 200);
-        }
-
-        return response()->json(['success' => false, 'message' => 'These credentials do not match our records!'], 401);
+        return response()->json($response, $response['success'] ? 200 : 401);
     }
 
     public function logout()
     {
-        Auth::guard('customer')->logout();
-        request()->session()->invalidate();
-        //Regenerate session token to prevent session fixation attacks
-        request()->session()->regenerateToken();
-
+        $this->userRepository->logout('customer');
         return redirect('/')->with('message', 'Successfully logged out');
     }
 
@@ -86,30 +80,19 @@ class MainController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
-        $customer = User::create([
-            'fname' => $request->fname,
-            'lname' => $request->lname,
-            'contact' => $request->contact,
-            'contact' => $request->contact,
-            'status' =>1,
-            'email' => $request->email,
-            'role' => 0,
-            'password' => Hash::make($request->password),
-            'address' => $request->address,
-            'phone' => $request->phone,
-        ]);
-    
-        //check Auth
+
+        $customer = $this->userRepository->register($request->all());
         Auth::guard('customer')->login($customer);
+
         return response()->json(['success' => true, 'message' => 'Registered successfully.'], 200);
     }
 
-    public function profile ()
+    public function profile()
     {
-        $cartData =  Cart::where('carts.customer_id' , Auth::guard('customer')->user()->id)->select('carts.cart_id')->get();
-        $brandList = Brand::all();
-        $userData = User::where('id', Auth::guard('customer')->user()->id )->first();
+        $cartData =  $this->userRepository->getCartData(Auth::guard('customer')->user()->id);
+        $brandList = $this->userRepository->getBrandList();
+        $userData = $this->userRepository->getSingleUserData(Auth::guard('customer')->user()->id);
+  
         return view('customer.profile')->with([
             'userData'  =>  $userData, 
             'brandList'  => $brandList, 
@@ -135,7 +118,8 @@ class MainController extends Controller
             'contact' => $request->contact,
             'address' => $request->address,
         ];
-        User::where('id', Auth::guard('customer')->user()->id )->update($update);
+
+        $this->userRepository->updateUserProfile($update, Auth::guard('customer')->user()->id);
 
         return response()->json(['success' => true, 'message' => 'Details Change Successfully..'], 200);
     }
@@ -165,17 +149,15 @@ class MainController extends Controller
         return response()->json(['success' => true, 'message' => 'Password changed successfully.'], 200);
     }
 
+    
     public function about()
     {
         $cartData = null ;
-
         if(Auth::guard('customer')->check())  
         {
-            $cartData =  Cart::where('carts.customer_id' , Auth::guard('customer')->user()->id)->select('carts.cart_id')->get();
+            $cartData = $this->userRepository->getCartData(Auth::guard('customer')->user()->id);
         }
-
-        $brandList = Brand::all();
-
+        $brandList = $this->userRepository->getBrandList();
         return view('customer.about')->with([
             'brandList'  =>   $brandList, 
             'cartData'  =>  $cartData, 
@@ -186,13 +168,12 @@ class MainController extends Controller
     public function contact()
     {
         $cartData = null ;
-
         if(Auth::guard('customer')->check())  
         {
-            $cartData =  Cart::where('carts.customer_id' , Auth::guard('customer')->user()->id)->select('carts.cart_id')->get();
+            $cartData = $this->userRepository->getCartData(Auth::guard('customer')->user()->id);
         }
 
-        $brandList = Brand::all();
+        $brandList = $this->userRepository->getBrandList();
 
         return view('customer.contact')->with([
             'brandList'  =>   $brandList, 
@@ -200,5 +181,4 @@ class MainController extends Controller
         ]);
     }
 
-  
 }
